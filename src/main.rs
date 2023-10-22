@@ -12,10 +12,22 @@ fn main() {
             Ok(mut stream) => {
                 let mut buf = [0u8; 1024];
                 let read = stream.read(&mut buf).unwrap();
-                eprintln!("Read {read} bytes {:?}", String::from_utf8(buf[..read].to_vec()));
-                let written = stream.write(&"HTTP/1.1 200 OK\r\n\r\n".as_bytes()).unwrap();
-                stream.flush().unwrap();
-                eprintln!("Wrote {written} bytes");
+                if let Some((first_line, rest)) = String::from_utf8(buf[..read].to_vec()).unwrap().split_once("\r\n") {
+
+                    let mut words = first_line.split_ascii_whitespace();
+                    let method = words.next().unwrap();
+                    let path = words.next().unwrap();
+                    let http_version = words.next().unwrap();
+
+                    eprintln!("Read {read} bytes {first_line}");
+
+                    let written = match path {
+                        "/" => stream.write(&"HTTP/1.1 200 OK\r\n\r\n".as_bytes()).unwrap(),
+                        _ => stream.write(&"HTTP/1.1 404 Not Found\r\n\r\n".as_bytes()).unwrap(),
+                    };
+                    stream.flush().unwrap();
+                    eprintln!("Wrote {written} bytes");
+                }
             },
             Err(e) => eprintln!("error {e}"),
         }
