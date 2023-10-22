@@ -3,7 +3,11 @@
 // use std::net::TcpListener;
 
 use anyhow::anyhow;
-use std::{net::TcpListener, io::{Write, Read}, str::FromStr};
+use std::{
+    io::{Read, Write},
+    net::TcpListener,
+    str::FromStr,
+};
 
 #[derive(PartialEq, Eq, Copy, Clone, Debug)]
 enum Method {
@@ -17,7 +21,7 @@ impl FromStr for Method {
         return match s {
             "GET" => Ok(Method::Get),
             m => Err(anyhow!("Not implemented for {m}")),
-        }
+        };
     }
 }
 
@@ -33,7 +37,7 @@ impl FromStr for HttpVersion {
         return match s {
             "HTTP/1.1" => Ok(HttpVersion::Http11),
             v => Err(anyhow!("Not implemented for {}", v)),
-        }
+        };
     }
 }
 
@@ -64,13 +68,15 @@ fn main() -> anyhow::Result<()> {
     // You can use print statements as follows for debugging, they'll be visible when running tests.
     println!("Logs from your program will appear here!");
     let listener = TcpListener::bind("0.0.0.0:4221").unwrap();
-        for stream in listener.incoming() {
+    for stream in listener.incoming() {
         match stream {
             Ok(mut stream) => {
                 let mut buf = [0u8; 1024];
                 let read = stream.read(&mut buf).unwrap();
-                if let Some((status_line, rest)) = String::from_utf8(buf[..read].to_vec()).unwrap().split_once("\r\n") {
-
+                if let Some((status_line, rest)) = String::from_utf8(buf[..read].to_vec())
+                    .unwrap()
+                    .split_once("\r\n")
+                {
                     let status_line = StatusLine::from_str(status_line)?;
                     eprintln!("Read {read} bytes {status_line:?}");
 
@@ -81,30 +87,25 @@ fn main() -> anyhow::Result<()> {
                     match path_parts[1] {
                         "" => {
                             response.push_str("HTTP/1.1 200 OK\r\n\r\n");
-                        },
+                        }
                         "echo" => {
                             let s = &path_parts[2..].join("/");
                             eprintln!("s {s}");
-                            response.push_str("HTTP/1.1 200 OK\r\n\r\n");
-                            response.push_str("Content-Type: text/plain\r\n");
-                            response.push_str(format!("Content-Length: {}\r\n", s.len()).as_str());
-                            response.push_str("\r\n");
-                            response.push_str(s);
-                            response.push_str("\r\n");
+                            response.push_str(format!("HTTP/1.1 200 OK\r\n\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{}\r\n\r\n", s.len(), s).as_str());
                         }
                         p => {
                             eprintln!("Not route for {}", p);
                             response.push_str("HTTP/1.1 404 Not Found\r\n\r\n");
-                        },
+                        }
                     };
                     eprintln!("writing response\n{response}");
                     let written = stream.write(response.as_bytes()).unwrap();
                     stream.flush().unwrap();
                     eprintln!("Wrote {written} bytes");
                 }
-            },
+            }
             Err(e) => eprintln!("error {e}"),
         }
-    };
+    }
     Ok(())
 }
