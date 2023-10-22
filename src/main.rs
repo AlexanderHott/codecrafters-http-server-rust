@@ -1,3 +1,4 @@
+#![allow(dead_code, unused_variables)]
 // Uncomment this block to pass the first stage
 // use std::net::TcpListener;
 
