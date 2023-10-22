@@ -10,7 +10,7 @@ use tokio::{
     io::{AsyncWriteExt, AsyncReadExt},
 };
 
-use crate::http::{Headers, StatusLine};
+use crate::http::{StatusLine, Headers};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
