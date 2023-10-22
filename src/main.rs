@@ -77,7 +77,7 @@ fn main() -> anyhow::Result<()> {
                     eprintln!("{:?}", status_line);
                     eprintln!("{:?}", status_line.path.split("/").collect::<Vec<_>>());
                     match status_line.path.split("/").collect::<Vec<_>>()[..] {
-                        [""] => {
+                        ["", ""] => {
                             response.push_str("HTTP/1.1 200 OK\r\n\r\n");
                         },
                         ["", "echo", s] => {
