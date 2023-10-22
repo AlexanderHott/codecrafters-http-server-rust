@@ -5,6 +5,7 @@ use std::{collections::HashMap, str::FromStr};
 #[derive(PartialEq, Eq, Copy, Clone, Debug)]
 pub enum Method {
     Get,
+    Post,
 }
 
 impl FromStr for Method {
@@ -13,6 +14,7 @@ impl FromStr for Method {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         return match s {
             "GET" => Ok(Method::Get),
+            "POST" => Ok(Method::Post),
             m => Err(anyhow!("Not implemented for {m}")),
         };
     }

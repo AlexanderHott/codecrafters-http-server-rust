@@ -12,7 +12,7 @@ use tokio::{
     net::{TcpListener, TcpStream},
 };
 
-use crate::http::{Headers, StatusLine};
+use crate::http::{Headers, Method, StatusLine};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -47,12 +47,13 @@ async fn handle_request(mut stream: TcpStream, dir: String) -> anyhow::Result<()
 
     let req = rest.split("\r\n\r\n").collect::<Vec<_>>();
     let headers = req[0];
-    // let body = req[2];
+    let body = *req.get(1).unwrap_or(&"");
+
     eprintln!("Read {read} bytes {status_line:?} {headers:?}");
 
     let status_line = StatusLine::from_str(status_line)?;
     let headers = Headers::from_str(headers)?;
-    eprintln!("Read {read} bytes {status_line:?} {headers:?}");
+    // eprintln!("Read {read} bytes {status_line:?} {headers:?}");
 
     let mut response = String::new();
     eprintln!("{:?}", status_line);
@@ -75,13 +76,21 @@ async fn handle_request(mut stream: TcpStream, dir: String) -> anyhow::Result<()
         "files" => {
             let file_path = PathBuf::from(dir + "/" + &path_parts[2..].join("/"));
             eprintln!("Path: {:?}", file_path);
-            if let Ok(file_contents) = tokio::fs::read_to_string(file_path).await {
-                // eprintln!("file contents: {:?}", file_contents);
-                response.push_str(
+            match status_line.method {
+                Method::Get => {
+                    if let Ok(file_contents) = tokio::fs::read_to_string(file_path).await {
+                        // eprintln!("file contents: {:?}", file_contents);
+                        response.push_str(
                     format!("HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: {}\r\n\r\n{}\r\n\r\n", 
                     file_contents.len(), file_contents).as_str());
-            } else {
-                response.push_str("HTTP/1.1 404 Not Found\r\n\r\n");
+                    } else {
+                        response.push_str("HTTP/1.1 404 Not Found\r\n\r\n");
+                    }
+                }
+                Method::Post => {
+                    tokio::fs::write(file_path, body).await?;
+                    response.push_str("HTTP/1.1 201 Created\r\n\r\n");
+                }
             }
         }
         p => {
