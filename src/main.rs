@@ -75,12 +75,14 @@ fn main() -> anyhow::Result<()> {
 
                     let mut response = String::new();
                     eprintln!("{:?}", status_line);
-                    eprintln!("{:?}", status_line.path.split("/").collect::<Vec<_>>());
-                    match status_line.path.split("/").collect::<Vec<_>>()[..] {
-                        ["", ""] => {
+                    let path_parts = status_line.path.split("/").collect::<Vec<_>>();
+                    eprintln!("{:?}", path_parts);
+                    match path_parts[1] {
+                        "" => {
                             response.push_str("HTTP/1.1 200 OK\r\n\r\n");
                         },
-                        ["", "echo", s] => {
+                        "echo" => {
+                            let s = &path_parts[2..].join("/");
                             response.push_str("HTTP/1.1 200 OK\r\n\r\n");
                             response.push_str("Content-Type: text/plain\r\n");
                             response.push_str(format!("Content-Length: {}\r\n", s.len()).as_str());
@@ -88,7 +90,8 @@ fn main() -> anyhow::Result<()> {
                             response.push_str(s);
                             response.push_str("\r\n");
                         }
-                        _ => {
+                        p => {
+                            eprintln!("Not route for {}", p);
                             response.push_str("HTTP/1.1 404 Not Found\r\n\r\n");
                         },
                     };
