@@ -121,7 +121,7 @@ fn main() -> anyhow::Result<()> {
                     }
                     "user-agent" => {
                         let s = headers.0.get("User-Agent").unwrap();
-                        response.push_str(format!("HTTP/1.1 200 OK\r\n\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{}\r\n\r\n", s.len(), s).as_str());
+                        response.push_str(format!("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: {}\r\n\r\n{}\r\n\r\n", s.len(), s).as_str());
                     }
                     p => {
                         eprintln!("Not route for {}", p);
