@@ -83,6 +83,7 @@ fn main() -> anyhow::Result<()> {
                         },
                         "echo" => {
                             let s = &path_parts[2..].join("/");
+                            eprintln!("s {s}");
                             response.push_str("HTTP/1.1 200 OK\r\n\r\n");
                             response.push_str("Content-Type: text/plain\r\n");
                             response.push_str(format!("Content-Length: {}\r\n", s.len()).as_str());
@@ -95,6 +96,7 @@ fn main() -> anyhow::Result<()> {
                             response.push_str("HTTP/1.1 404 Not Found\r\n\r\n");
                         },
                     };
+                    eprintln!("writing response\n{response}");
                     let written = stream.write(response.as_bytes()).unwrap();
                     stream.flush().unwrap();
                     eprintln!("Wrote {written} bytes");
